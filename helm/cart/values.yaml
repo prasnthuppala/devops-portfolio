@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: ghcr.io/YOURUSERNAME/devops-portfolio/cart
+  repository: ghcr.io/prasnthuppala/devops-portfolio/cart
   pullPolicy: IfNotPresent
   tag: "latest"
 service:
