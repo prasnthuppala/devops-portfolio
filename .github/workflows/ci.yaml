@@ -28,7 +28,7 @@ jobs:
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: services/cart/Dockerfile
+          dockerfile: services/cart/dockerfile
           failure-threshold: error
 
   test:
