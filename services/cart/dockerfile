@@ -10,9 +10,7 @@ FROM node:20-alpine AS pruner
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 # Install node-prune to remove READMEs, tests, and docs from node_modules
-RUN wget -qO- https://gobinaries.com/tj/node-prune | sh && 
-    node-prune ./node_modules
-
+RUN wget -qO- https://gobinaries.com/tj/node-prune | sh && node-prune ./node_modules
 # STAGE 3: Final Production Runtime
 FROM node:20-alpine
 LABEL maintainer="DevOps Team" version="1.1.0"
