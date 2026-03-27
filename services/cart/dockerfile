@@ -1,0 +1,37 @@
+# STAGE 1: Build & Compile
+FROM node:20-alpine AS builder
+WORKDIR /app
+# Copy lockfile to ensure deterministic builds
+COPY package*.json ./ 
+RUN npm install production
+
+# STAGE 2: Cleanup (The "Sizer")
+FROM node:20-alpine AS pruner
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+# Install node-prune to remove READMEs, tests, and docs from node_modules
+RUN wget -qO- https://gobinaries.com/tj/node-prune | sh && \
+    node-prune ./node_modules
+
+# STAGE 3: Final Production Runtime
+FROM node:20-alpine
+LABEL maintainer="DevOps Team" version="1.1.0"
+
+# Combine system commands to reduce layers
+RUN addgroup -S cartgroup && adduser -S cartuser -G cartgroup
+WORKDIR /app
+
+# Copy ONLY pruned modules and essential source code
+COPY --from=pruner --chown=cartuser:cartgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=cartuser:cartgroup /app/package.json ./
+COPY --chown=cartuser:cartgroup . .
+
+USER cartuser
+ENV NODE_ENV=production PORT=3000
+EXPOSE 3000
+
+# Healthcheck using built-in wget (standard in Alpine)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+CMD ["node", "app.js"]
